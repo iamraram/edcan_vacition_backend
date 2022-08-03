@@ -4,6 +4,7 @@ import usersSchema from './schema/users'
 import express from 'express'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import fs from 'fs'
 
 const app = express()
 dotenv.config()
@@ -81,12 +82,8 @@ app.post('/message', (req, res, err) => {
     let data: String = ""
     let status: Number = 200
 
-    const chat_data = {
-        "나": "person",
-        "오늘": "time",
-        // edit: add data and match words
-    }
-
+    const wordlist = fs.readFileSync('./modules/wordlist.json', 'utf8')
+    const chat_data = JSON.parse(wordlist)
     const chat_data_length = Object.keys(chat_data).length
 
     function analyze_message(message: String) {
