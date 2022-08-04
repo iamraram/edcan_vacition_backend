@@ -38,31 +38,37 @@ app.get('/login', (req, res, error) => {
     res.json('login')
 })
 
-
 app.post('/register', async (req, res, error) => {
     const tokenPw = TOKEN + req.body.passWord
     const changedPw = crypto.createHash('sha512', Buffer.from(SALT))
     const resultPw = changedPw.update(tokenPw).digest('base64')
+
     const schema = new usersSchema ({
         num: 1,
 		name: req.body.name,
 		userId: req.body.userId,
         userPw: resultPw.replace(('==' || '='), ''),
         email: req.body.email,
-        isMale: true,
-        friendly: 0
+        isMale: req.body.isMale,
+        friendly: 1
 	})
+
     try {
         await schema.save()
-        console.log('complete uploaded posts')
-        res.redirect('/write')
+        console.log('complete added new account')
+        res.send(() => {
+            res.json({
+                status: 200,
+                name: req.body.name
+            })
+            res.redirect('/')
+        })
     }
     catch (err) {
         console.log('error')
         res.redirect('/error/404')
     }
 })
-
 
 app.get('/community', (req, res, error) => {
     res.json('community')
