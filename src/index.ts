@@ -5,13 +5,16 @@ import express from 'express'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import fs from 'fs'
+import crypto from 'crypto'
 
 const app = express()
 dotenv.config()
 
 const ID: any = process.env.DBID
 const PW: any = process.env.PASSWORD
-const port: any = process.env.port
+const TOKEN: any = process.env.SECRETCODE
+const SALT: any = process.env.SALT
+const port: any = process.env.PORT
 
 app.listen((port || 8080), () => {
     console.log('listning on' + port)
@@ -37,18 +40,27 @@ app.get('/login', (req, res, error) => {
 
 
 app.post('/register', async (req, res, error) => {
+    const tokenPw = TOKEN + req.body.passWord
+    const changedPw = crypto.createHash('sha512', Buffer.from(SALT))
+    const resultPw = changedPw.update(tokenPw).digest('base64')
     const schema = new usersSchema ({
         num: 1,
 		name: req.body.name,
 		userId: req.body.userId,
-        userPw: req.body.passWord,
+        userPw: resultPw.replace(('==' || '='), ''),
         email: req.body.email,
         isMale: true,
         friendly: 0
 	})
-	await schema.save()
-    console.log('complete uploaded posts')
-    res.redirect('/write')
+    try {
+        await schema.save()
+        console.log('complete uploaded posts')
+        res.redirect('/write')
+    }
+    catch (err) {
+        console.log('error')
+        res.redirect('/error/404')
+    }
 })
 
 
